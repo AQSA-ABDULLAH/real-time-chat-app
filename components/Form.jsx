@@ -201,7 +201,3 @@ const Form = ({ type }) => {
 };
 
 export default Form;
-
-
-
-

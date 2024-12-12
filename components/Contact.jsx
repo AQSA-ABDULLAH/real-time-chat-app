@@ -1,26 +1,30 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { firestore } from '../firebase/config'; // Adjust the import path as needed
-import { collection, getDocs } from 'firebase/firestore';
+import React, { useState, useEffect } from "react";
+import { getStorage, ref, listAll, getDownloadURL } from "firebase/storage";
 
 export default function Contact() {
     const [contacts, setContacts] = useState([]);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState("");
 
-    // Fetch contacts from Firestore
     useEffect(() => {
         const fetchContacts = async () => {
             try {
-                const contactsCollection = collection(firestore, 'contacts'); // Firestore collection name
-                const snapshot = await getDocs(contactsCollection);
-                const contactList = snapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data(),
-                }));
+                const storage = getStorage();
+                const listRef = ref(storage, "Users"); // Point to the Users folder
+                const fileList = await listAll(listRef);
+
+                const contactList = await Promise.all(
+                    fileList.items.map(async (fileRef) => {
+                        const url = await getDownloadURL(fileRef);
+                        const response = await fetch(url);
+                        return response.json(); // Parse JSON data
+                    })
+                );
+
                 setContacts(contactList);
             } catch (error) {
-                console.error('Error fetching contacts:', error);
+                console.error("Error fetching contacts:", error);
             }
         };
 
@@ -28,7 +32,7 @@ export default function Contact() {
     }, []);
 
     // Filter contacts based on the search term
-    const filteredContacts = contacts.filter(contact =>
+    const filteredContacts = contacts.filter((contact) =>
         contact.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -48,7 +52,7 @@ export default function Contact() {
             {/* Contacts List */}
             <ul className="space-y-2">
                 {filteredContacts.length > 0 ? (
-                    filteredContacts.map(contact => (
+                    filteredContacts.map((contact) => (
                         <li
                             key={contact.id}
                             className="p-3 bg-white rounded-lg shadow hover:bg-gray-200 cursor-pointer"

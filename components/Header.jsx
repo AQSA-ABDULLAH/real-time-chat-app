@@ -1,18 +1,21 @@
 "use client";
 
 import { Logout } from "@mui/icons-material";
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 const Header = () => {
   const pathname = usePathname();
+  const router = useRouter();
 
   const handleLogout = async () => {
-    console.log("logout")
+    // Remove userEmail from localStorage
+    localStorage.removeItem("userEmail");
+    router.push("/");
+    console.log("User logged out");
   };
-
 
   return (
     <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
@@ -46,9 +49,8 @@ const Header = () => {
 
         {/* Logout Icon */}
         <Logout
-          sx={{ color: "#737373", cursor: "pointer" }}
           onClick={handleLogout}
-          className="text-gray-500 hover:text-gray-700 transition duration-200"
+          className="text-gray-500 hover:text-gray-700 color-#737373 cursor-pointer transition duration-200"
         />
 
         {/* Profile Image */}

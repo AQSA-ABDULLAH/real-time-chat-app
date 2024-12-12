@@ -76,8 +76,12 @@ const Form = ({ type }) => {
       try {
         const userCredentials = await signInWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredentials.user;
-
+    
         if (user.emailVerified) {
+          // Save user email to localStorage
+          localStorage.setItem("userEmail", user.email);
+    
+          // Navigate to chats
           router.push("/chats");
         } else {
           setError("Please verify your email before logging in.");
@@ -86,6 +90,7 @@ const Form = ({ type }) => {
         setError(err.message || "Invalid credentials. Please try again.");
       }
     }
+    
   };
 
   return (

@@ -1,12 +1,16 @@
 "use client";
 
 import { EmailOutlined, LockOutlined, PersonOutline } from "@mui/icons-material";
-import { sendEmailVerification, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase/config"; // Import Firebase auth object from your Firebase configuration
+import {
+  sendEmailVerification,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import { auth } from "../firebase/config"; // Ensure Firestore is initialized in config
+import { getStorage, ref, uploadBytes } from "firebase/storage";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
 import { useState } from "react";
 
 const Form = ({ type }) => {
@@ -16,65 +20,70 @@ const Form = ({ type }) => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue, // To set values dynamically if needed
+    setValue,
   } = useForm();
 
   const router = useRouter();
 
-  const onSubmit = async (data, e) => {
-    e.preventDefault(); // Make sure to prevent default form submission
+  const onSubmit = async (data) => {
+    setError(null);
+    setMessage(null);
 
     if (type === "register") {
-      setError(null); // Reset previous error
-      setMessage(null); // Reset previous message
-
       if (data.password !== data.confirmPassword) {
         setError("Passwords do not match");
         return;
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          data.email,
+          data.password
+        );
         const user = userCredential.user;
 
         // Send verification email
         await sendEmailVerification(user);
 
-        // Store email in localStorage
-        localStorage.setItem("registrationData", JSON.stringify({ email: data.email }));
+        // Store user data in Firestore
+        const storage = getStorage();
+        const storageRef = ref(storage, `Users/${user.uid}.json`); // Create a file in storage
 
+        const userData = JSON.stringify({
+          username: data.username,
+          email: data.email,
+          createdAt: new Date().toISOString(),
+        });
+
+        // Save user data to Firebase Storage
+        await uploadBytes(storageRef, new Blob([userData], { type: "application/json" }));
+
+        // Success message
         setMessage("Registration successful. Please check your email for verification.");
 
-        // Reset form fields (optional)
+        // Reset form fields
         setValue("email", "");
         setValue("password", "");
         setValue("confirmPassword", "");
-
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
-        setError(errorMessage);
+        setValue("username", "");
+      } catch (err) {
+        setError(err.message || "An error occurred during registration.");
       }
     }
 
     if (type === "login") {
-      setError(null); // Reset previous error
-      setMessage(null); // Reset previous message
-
       try {
         const userCredentials = await signInWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredentials.user;
 
         if (user.emailVerified) {
-          // Redirect to dashboard or homepage
           router.push("/chats");
         } else {
           setError("Please verify your email before logging in.");
         }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Invalid credentials. Please try again.";
-        setError(errorMessage);
+      } catch (err) {
+        setError(err.message || "Invalid credentials. Please try again.");
       }
     }
   };
@@ -94,8 +103,7 @@ const Form = ({ type }) => {
                 <input
                   {...register("username", {
                     required: "Username is required",
-                    validate: (value) =>
-                      value.length >= 3 || "Username must be at least 3 characters",
+                    minLength: { value: 3, message: "Username must be at least 3 characters" },
                   })}
                   type="text"
                   placeholder="Username"
@@ -129,10 +137,11 @@ const Form = ({ type }) => {
               <input
                 {...register("password", {
                   required: "Password is required",
-                  validate: (value) =>
-                    value.length >= 5 &&
-                    /[!@#$%^&*()_+{}[\]:;<>,.?~\\/\-]/.test(value) ||
-                    "Password must be at least 5 characters and contain at least one special character",
+                  minLength: { value: 5, message: "Password must be at least 5 characters" },
+                  pattern: {
+                    value: /[!@#$%^&*(),.?":{}|<>]/,
+                    message: "Password must include at least one special character",
+                  },
                 })}
                 type="password"
                 placeholder="Password"
@@ -192,6 +201,7 @@ const Form = ({ type }) => {
 };
 
 export default Form;
+
 
 
 

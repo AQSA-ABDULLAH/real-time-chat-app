@@ -1,0 +1,51 @@
+[
+    {
+      "id": 1,
+      "name": "Chat 1",
+      "message": "This is a preview of the chat message...",
+      "avatar": "https://www.example.com/avatar1.jpg"
+    },
+    {
+      "id": 2,
+      "name": "Chat 2",
+      "message": "This is another preview of the chat message...",
+      "avatar": "https://www.example.com/avatar2.jpg"
+    },
+    {
+      "id": 3,
+      "name": "Chat 3",
+      "message": "This is a different chat preview...",
+      "avatar": "https://www.example.com/avatar3.jpg"
+    },
+    {
+      "id": 4,
+      "name": "Chat 4",
+      "message": "Message from Chat 4...",
+      "avatar": "https://www.example.com/avatar4.jpg"
+    },
+    {
+      "id": 5,
+      "name": "ali",
+      "message": "A preview of Chat 5...",
+      "avatar": "https://www.example.com/avatar5.jpg"
+    },
+    {
+        "id": 6,
+        "name": "Chat 3",
+        "message": "This is a different chat preview...",
+        "avatar": "https://www.example.com/avatar3.jpg"
+      },
+      {
+        "id": 7,
+        "name": "Chat 4",
+        "message": "Message from Chat 4...",
+        "avatar": "https://www.example.com/avatar4.jpg"
+      },
+      {
+        "id": 8,
+        "name": "Chat 5",
+        "message": "A preview of Chat 5...",
+        "avatar": "https://www.example.com/avatar5.jpg"
+      }
+  ]
+  

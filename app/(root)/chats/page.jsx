@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState } from "react"; // Add this import for useState
+import React, { useState } from "react";
 import ChatDetails from "@/components/ChatDetails";
 import ChatList from "@/components/ChatList";
 import Contact from "@/components/Contact";
+import Header from "@/components/Header";
 
 const Chats = () => {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Initially set to false to hide the sidebar
@@ -22,10 +23,10 @@ const Chats = () => {
                     </h1>
 
                     <img
-                        src="#"
+                        src="/assest/add.png"
                         alt="Toggle Sidebar"
                         onClick={toggleSidebar}
-                        className="cursor-pointer"
+                        className="h-[32px] cursor-pointer"
                     />
                 </div>
                 <ChatList />
@@ -36,11 +37,14 @@ const Chats = () => {
                 className={`${isSidebarVisible ? "block" : "hidden"
                     } fixed inset-0 md:w-1/3 md:left-0 bg-gray-800 bg-opacity-75 z-50`}
             >
-                <Contact />
+                <div className="border-r border-gray-200 h-full">
+                    <Contact toggleSidebar={toggleSidebar} /> {/* Pass toggleSidebar */}
+                </div>
             </div>
 
-            {/* Contact Section */}
+            {/* Chat Details Section */}
             <div className="w-full md:w-2/3">
+                <Header />
                 <ChatDetails />
             </div>
         </div>
@@ -48,3 +52,4 @@ const Chats = () => {
 };
 
 export default Chats;
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import ChatDetails from "@/components/ChatDetails";
+import ChatDetails from "@/components/ChatDetail";
 import ChatList from "@/components/ChatList";
 import Contact from "@/components/Contact";
 import Header from "@/components/Header";

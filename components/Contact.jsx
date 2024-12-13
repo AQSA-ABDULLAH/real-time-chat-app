@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { firestore } from "../firebase/config"; // Import firestore from your config
-import { collection, getDocs, addDoc } from "firebase/firestore"; // Import Firestore functions
+import { firestore } from "../firebase/config"; 
+import { collection, getDocs, addDoc, query, where } from "firebase/firestore"; // Import query and where for filtering
 
 export default function Contact({ toggleSidebar }) {
   const [contacts, setContacts] = useState([]);
@@ -28,16 +28,27 @@ export default function Contact({ toggleSidebar }) {
 
   const handleContactClick = async (contact) => {
     try {
+      // Query the 'chats' collection to check if the contact's email already exists
       const chatsCollection = collection(firestore, "chats");
-      const chatData = {
-        userId: contact.id,
-        username: contact.username,
-        email: contact.email,
-        avatar: contact.avatar || null,
-        createdAt: new Date(), // Add a timestamp
-      };
-      await addDoc(chatsCollection, chatData);
-      console.log("Contact saved to chats:", chatData);
+      const q = query(chatsCollection, where("email", "==", contact.email));
+      const querySnapshot = await getDocs(q);
+
+      // If the email is already in the chats collection, close the contact sidebar
+      if (!querySnapshot.empty) {
+        console.log("Chat already exists with this contact.");
+        toggleSidebar(); // Close sidebar if chat already exists
+      } else {
+        // If the email doesn't exist, add the contact to the chats collection
+        const chatData = {
+          userId: contact.id,
+          username: contact.username,
+          email: contact.email,
+          avatar: contact.avatar || null,
+          createdAt: new Date(), // Add a timestamp
+        };
+        await addDoc(chatsCollection, chatData);
+        console.log("Contact saved to chats:", chatData);
+      }
     } catch (error) {
       console.error("Error saving contact to chats:", error);
     }
@@ -108,5 +119,3 @@ export default function Contact({ toggleSidebar }) {
     </section>
   );
 }
-
-

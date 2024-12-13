@@ -7,6 +7,10 @@ const Chats = () => {
         <div className="main-container flex flex-col md:flex-row h-full">
             {/* Sidebar ChatList */}
             <div className="w-1/3 border-r border-gray-200">
+            <div className="m-4 flex justify-between">
+                <h1>CHATS</h1>
+                <img src="#"/>
+            </div>
                 <ChatList />
             </div>
             {/* Contact Section */}

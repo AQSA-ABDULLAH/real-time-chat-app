@@ -1,32 +1,47 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { collection, getDocs } from "firebase/firestore";
+import { firestore } from "../firebase/config"; // Correct Firestore import
 
 export default function ChatList() {
   const [chats, setChats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const router = useRouter(); // Initialize router
+  const router = useRouter();
 
   useEffect(() => {
-    fetch("/data/chat.json")
-      .then((response) => response.json())
-      .then((data) => setChats(data))
-      .catch((error) => console.error("Error fetching chat data:", error));
+    const fetchChats = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(firestore, "chats")); // Use 'firestore' here
+        const chatData = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setChats(chatData);
+      } catch (error) {
+        console.error("Error fetching chats from Firestore:", error);
+      }
+    };
+
+    fetchChats();
   }, []);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
 
-  const filteredChats = chats.filter(
-    (chat) =>
-      chat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      chat.message.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredChats = chats.filter((chat) => {
+    const name = chat.name ? chat.name.toLowerCase() : ""; // Default to empty string if undefined
+    const message = chat.message ? chat.message.toLowerCase() : ""; // Default to empty string if undefined
+    return (
+      name.includes(searchQuery.toLowerCase()) ||
+      message.includes(searchQuery.toLowerCase())
+    );
+  });
 
   const handleChatClick = (chatId) => {
-    router.push(`/chats/${chatId}`); // Redirect to ChatDetails with chatId
+    router.push(`/chats/${chatId}`);
   };
 
   return (
@@ -42,27 +57,27 @@ export default function ChatList() {
       </div>
 
       <div
-        className="overflow-y-auto px-2 h-[calc(93vh-70px)]" // Set height dynamically
+        className="overflow-y-auto px-2 h-[calc(93vh-70px)]"
         style={{
-          scrollbarWidth: "thin", // For Firefox
-          scrollbarColor: "#D1D5DB #F3F4F6", // Custom colors
+          scrollbarWidth: "thin",
+          scrollbarColor: "#D1D5DB #F3F4F6",
         }}
       >
         {filteredChats.map((chat) => (
           <div
             key={chat.id}
-            onClick={() => handleChatClick(chat.id)} // Handle click to redirect
+            onClick={() => handleChatClick(chat.id)}
             className="flex items-center p-3 bg-white border-b hover:bg-gray-50 cursor-pointer"
           >
             <div className="w-12 h-12 rounded-full bg-blue-300 flex-shrink-0">
               <img
-                src={chat.avatar}
+                src={chat.avatar || "/default-avatar.png"} // Fallback avatar
                 alt={`Avatar for ${chat.name}`}
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
             <div className="ml-3">
-              <p className="font-semibold text-gray-800">{chat.name}</p>
+              <p className="font-semibold text-gray-800">{chat.username}</p>
               <p className="text-sm text-gray-500 truncate">{chat.message}</p>
             </div>
           </div>
@@ -71,3 +86,5 @@ export default function ChatList() {
     </div>
   );
 }
+
+

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { firestore } from "../firebase/config"; // Import firestore from your config
-import { collection, getDocs } from "firebase/firestore"; // Import firestore functions
+import { collection, getDocs, addDoc } from "firebase/firestore"; // Import Firestore functions
 
 export default function Contact({ toggleSidebar }) {
   const [contacts, setContacts] = useState([]);
@@ -25,6 +25,23 @@ export default function Contact({ toggleSidebar }) {
 
     fetchContacts();
   }, []);
+
+  const handleContactClick = async (contact) => {
+    try {
+      const chatsCollection = collection(firestore, "chats");
+      const chatData = {
+        userId: contact.id,
+        username: contact.username,
+        email: contact.email,
+        avatar: contact.avatar || null,
+        createdAt: new Date(), // Add a timestamp
+      };
+      await addDoc(chatsCollection, chatData);
+      console.log("Contact saved to chats:", chatData);
+    } catch (error) {
+      console.error("Error saving contact to chats:", error);
+    }
+  };
 
   const filteredContacts = contacts.filter((contact) => {
     const name = contact?.username?.toLowerCase() || "";
@@ -72,6 +89,7 @@ export default function Contact({ toggleSidebar }) {
           <li
             key={contact.id}
             className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer"
+            onClick={() => handleContactClick(contact)} // Save contact to Firestore on click
           >
             <div className="w-12 h-12 rounded-full bg-blue-300 flex-shrink-0">
               <img
@@ -90,4 +108,5 @@ export default function Contact({ toggleSidebar }) {
     </section>
   );
 }
+
 

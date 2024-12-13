@@ -30,7 +30,7 @@ export default function ChatList() {
   };
 
   return (
-    <div className=" h-full">
+    <div className="h-full">
       <div className="mb-4 mx-4">
         <input
           type="text"
@@ -41,7 +41,13 @@ export default function ChatList() {
         />
       </div>
 
-      <div className=" max-h-[calc(100vh-200px)] overflow-y-auto px-2">
+      <div
+        className="overflow-y-auto px-2 h-[calc(93vh-70px)]" // Set height dynamically
+        style={{
+          scrollbarWidth: "thin", // For Firefox
+          scrollbarColor: "#D1D5DB #F3F4F6", // Custom colors
+        }}
+      >
         {filteredChats.map((chat) => (
           <div
             key={chat.id}
@@ -65,3 +71,4 @@ export default function ChatList() {
     </div>
   );
 }
+

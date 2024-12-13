@@ -1,17 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { firestore } from "../firebase/config"; // Import firestore from your config
+import { collection, getDocs } from "firebase/firestore"; // Import firestore functions
 
 export default function Contact() {
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState(""); // State for search input
 
   useEffect(() => {
-    // Fetch data from the contact.json file
-    fetch("/data/contact.json")
-      .then((response) => response.json())
-      .then((data) => setContacts(data))
-      .catch((error) => console.error("Error fetching contacts:", error));
+    // Fetch data from Firestore
+    const fetchContacts = async () => {
+      try {
+        const contactsCollection = collection(firestore, "users"); // Reference the contacts collection
+        const contactsSnapshot = await getDocs(contactsCollection); // Get all documents from the collection
+        const contactsList = contactsSnapshot.docs.map((doc) => ({
+          id: doc.id, // Include document ID
+          ...doc.data(), // Include document data
+        }));
+        setContacts(contactsList); // Update the state with fetched contacts
+      } catch (error) {
+        console.error("Error fetching contacts:", error);
+      }
+    };
+
+    fetchContacts(); // Call the function to fetch contacts on component mount
   }, []);
 
   // Filter contacts based on search query
@@ -41,8 +54,8 @@ export default function Contact() {
       <ul className="space-y-4">
         {filteredContacts.map((contact) => (
           <li key={contact.id} className="p-4 border rounded-lg bg-white">
-            <h3 className="font-bold">{contact.name}</h3>
-            <p className="text-gray-600">{contact.lastMessage}</p>
+            <h3 className="font-bold">{contact.username}</h3>
+            <p className="text-gray-600">{contact.email}</p>
           </li>
         ))}
       </ul>

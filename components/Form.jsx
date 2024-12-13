@@ -6,8 +6,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { auth } from "../firebase/config"; // Ensure Firestore is initialized in config
-import { getStorage, ref, uploadBytes } from "firebase/storage";
+import { auth, firestore, doc, setDoc } from "../firebase/config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -36,6 +35,7 @@ const Form = ({ type }) => {
       }
 
       try {
+        // Register user with email and password
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           data.email,
@@ -46,18 +46,12 @@ const Form = ({ type }) => {
         // Send verification email
         await sendEmailVerification(user);
 
-        // Store user data in Firestore
-        const storage = getStorage();
-        const storageRef = ref(storage, `Users/${user.uid}.json`); // Create a file in storage
-
-        const userData = JSON.stringify({
+        // Save user data to Firestore
+        await setDoc(doc(firestore, "users", user.uid), {
           username: data.username,
           email: data.email,
           createdAt: new Date().toISOString(),
         });
-
-        // Save user data to Firebase Storage
-        await uploadBytes(storageRef, new Blob([userData], { type: "application/json" }));
 
         // Success message
         setMessage("Registration successful. Please check your email for verification.");
@@ -76,11 +70,11 @@ const Form = ({ type }) => {
       try {
         const userCredentials = await signInWithEmailAndPassword(auth, data.email, data.password);
         const user = userCredentials.user;
-    
+
         if (user.emailVerified) {
           // Save user email to localStorage
           localStorage.setItem("userEmail", user.email);
-    
+
           // Navigate to chats
           router.push("/chats");
         } else {
@@ -90,7 +84,6 @@ const Form = ({ type }) => {
         setError(err.message || "Invalid credentials. Please try again.");
       }
     }
-    
   };
 
   return (

@@ -1,7 +1,6 @@
-// firebase/config.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, getDoc, setDoc } from "firebase/firestore";  // Import Firestore functions
+import { getFirestore, doc, setDoc } from "firebase/firestore";  // Import doc and setDoc
 import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
@@ -19,12 +18,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const firestore = getFirestore(app);
+const firestore = getFirestore(app);  // Ensure you're using the initialized firestore instance
 const storage = getStorage(app);
 
 let analytics;
 if (typeof window !== "undefined") {
-    analytics = getAnalytics(app);
+  analytics = getAnalytics(app);
 }
 
-export { app, db, storage, auth, firestore, analytics };
+export { app, db, storage, auth, firestore, analytics, doc, setDoc };

@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import ChatList from "@/components/ChatList";
 import Contact from "@/components/Contact";
-import Header from "@/components/Header";
 import ChatDetail from "@/components/ChatDetail";
 import { useParams } from "next/navigation";
 import { getAuth } from "firebase/auth"; // Import Firebase auth module
+import MediumHeader from "@/components/MediumHeader";
 
 const ChatPage = () => {
   const { chatid } = useParams(); // Extract chatId from the URL
@@ -54,7 +54,7 @@ const ChatPage = () => {
 
       {/* Chat Detail Section */}
       <div className="w-full md:w-2/3">
-        <Header />
+        <MediumHeader />
         <ChatDetail chatId={chatid} currentUser={currentUser} />
       </div>
     </div>

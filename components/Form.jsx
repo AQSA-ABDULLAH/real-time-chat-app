@@ -73,7 +73,7 @@ const Form = ({ type }) => {
 
         if (user.emailVerified) {
           // Save user email to localStorage
-          localStorage.setItem("userEmail", user.email);
+          localStorage.setItem("userId", user.uid);
 
           // Navigate to chats
           router.push("/chats");
@@ -90,7 +90,7 @@ const Form = ({ type }) => {
     <div className="flex items-center justify-center min-h-screen bg-blue-100">
       <div className="bg-white rounded-lg shadow-lg p-8 w-96">
         <div className="text-center mb-6">
-          <img src="/assets/logo.png" alt="logo" className="mx-auto w-16 mb-4" />
+          <img src="/assest/logo.png" alt="logo" className="mx-auto w-16 mb-4" />
           <h1 className="text-2xl font-bold text-gray-800">Chat App</h1>
         </div>
 
@@ -185,12 +185,12 @@ const Form = ({ type }) => {
         )}
 
         {type === "register" ? (
-          <Link href="/" className="block text-center text-gray-600 mt-4 hover:underline">
-            Already have an account? Sign In Here
+          <Link href="/" className="block text-center text-gray-600 mt-4 ">
+            Already have an account? <span className="hover:underline"> Sign In Here</span>
           </Link>
         ) : (
-          <Link href="/register" className="block text-center text-gray-600 mt-4 hover:underline">
-            Don't have an account? Register Here
+          <Link href="/register" className="block text-center text-gray-600 mt-4">
+            Don't have an account? <span className="hover:underline"> Register Here</span>
           </Link>
         )}
       </div>

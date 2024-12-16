@@ -8,7 +8,7 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    const userEmail = localStorage.getItem("userEmail");
+    const userEmail = localStorage.getItem("userId");
     
     // Redirect based on the presence of userEmail
     if (!userEmail && router.asPath === "/push") {

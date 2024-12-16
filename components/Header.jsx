@@ -1,32 +1,72 @@
 "use client";
 
 import { Logout } from "@mui/icons-material";
-import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import React from "react";
+import React, { useState, useEffect } from "react"; 
+import { db } from "../firebase/config"; 
+import { doc, getDoc } from "firebase/firestore"; 
 
-const Header = () => {
+const Header = ({ userId }) => {
+  const [userName, setUserName] = useState(""); 
+  const [loading, setLoading] = useState(true);
   const pathname = usePathname();
   const router = useRouter();
 
+  useEffect(() => {
+    if (userId) {
+      console.log("Fetching username for userId:", userId); 
+
+      const fetchUserName = async () => {
+        try {
+          const userDocRef = doc(db, "users", userId); 
+          const userDoc = await getDoc(userDocRef); 
+
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            console.log("Fetched user data:", userData); 
+            setUserName(userData.username);
+          } else {
+            console.log("No such user document!");
+            setUserName("User"); 
+          }
+        } catch (error) {
+          console.error("Error fetching username:", error);
+          setUserName("Error fetching username"); 
+        } finally {
+          setLoading(false); 
+        }
+      };
+
+      fetchUserName();
+    }
+  }, [userId]);
+
   const handleLogout = async () => {
-    // Remove userEmail from localStorage
+    
     localStorage.removeItem("userEmail");
-    router.push("/");
+    router.push("/");  
     console.log("User logged out");
   };
 
   return (
     <div className="flex items-center justify-between bg-white shadow-md px-6 py-4">
       {/* Logo */}
-      <Link href="/chats">
-        <img
-          src="/assest/logo.png"
-          alt="logo"
-          className="h-12 cursor-pointer"
-        />
-      </Link>
+      <div className="flex gap-4 text-[20px] items-center">
+        <Link href="/chats">
+          <img
+            src="/assest/logo.png"
+            alt="logo"
+            className="h-12 cursor-pointer"
+          />
+        </Link>
+
+        {loading ? (
+          <h1>Loading...</h1> 
+        ) : (
+          <h1>Welcome, {userName}</h1>
+        )}
+      </div>
 
       {/* Menu */}
       <div className="flex items-center space-x-6">
@@ -56,7 +96,7 @@ const Header = () => {
         {/* Profile Image */}
         <Link href="/profile">
           <img
-            src="/"
+            src="/assest/profile-image.png"
             alt="profile"
             className="w-10 h-10 rounded-full border border-gray-300 object-cover cursor-pointer"
           />

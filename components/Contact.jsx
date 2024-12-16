@@ -3,10 +3,29 @@
 import { useState, useEffect } from "react";
 import { firestore } from "../firebase/config";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth"; // Import Firebase Auth
 
 export default function Contact({ toggleSidebar }) {
   const [contacts, setContacts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentUser, setCurrentUser] = useState(null); // To store the logged-in user's data
+
+  useEffect(() => {
+    const auth = getAuth(); // Initialize Firebase Auth
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        // Save the current user data
+        setCurrentUser({
+          id: user.uid, // User ID
+          username: user.displayName || user.email.split("@")[0], // Username or fallback
+        });
+      } else {
+        console.error("No user is currently logged in.");
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -27,14 +46,16 @@ export default function Contact({ toggleSidebar }) {
   }, []);
 
   const handleContactClick = async (contact) => {
-    try {
-      const currentUserId = "CURRENT_USER_ID";
-      const currentUsername = "CURRENT_USER_USERNAME";
+    if (!currentUser) {
+      console.error("No user is logged in. Cannot create chat.");
+      return;
+    }
 
+    try {
       const chatsCollection = collection(firestore, "chats");
       const q = query(
         chatsCollection,
-        where("members", "array-contains", currentUserId)
+        where("members", "array-contains", currentUser.id)
       );
       const querySnapshot = await getDocs(q);
 
@@ -48,8 +69,8 @@ export default function Contact({ toggleSidebar }) {
       } else {
         // Define the chat schema
         const newChat = {
-          members: [currentUserId, contact.id],
-          usernames: [currentUsername, contact.username],
+          members: [currentUser.id, contact.id],
+          username: contact.username,
           avatar: contact.avatar || null,
           messages: [],
           createdAt: new Date(),
@@ -63,6 +84,15 @@ export default function Contact({ toggleSidebar }) {
       console.error("Error creating chat:", error);
     }
   };
+
+  const filteredContacts = contacts.filter((contact) => {
+    const name = contact?.username?.toLowerCase() || "";
+    const email = contact?.email?.toLowerCase() || "";
+    return (
+      name.includes(searchQuery.toLowerCase()) ||
+      email.includes(searchQuery.toLowerCase())
+    );
+  });
 
   return (
     <section className="p-6 bg-white h-full">

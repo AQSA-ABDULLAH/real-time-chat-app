@@ -11,14 +11,14 @@ export default function Page() {
     useEffect(() => {
         const storedUserId = localStorage.getItem("userId");
         if (storedUserId) {
-            setUserId(storedUserId); // Retrieve userId from localStorage
+            setUserId(storedUserId);
         } else {
             console.error("No userId found. Redirect to login.");
         }
     }, []);
 
     if (!userId) {
-        return <div>Loading...</div>; // Optionally, redirect to login page
+        return <div>Loading...</div>;
     }
 
     const handleNameChange = (e) => {

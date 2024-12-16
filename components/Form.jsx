@@ -91,7 +91,7 @@ const Form = ({ type }) => {
       <div className="bg-white rounded-lg shadow-lg p-8 w-96">
         <div className="text-center mb-6">
           <img src="/assets/logo.png" alt="logo" className="mx-auto w-16 mb-4" />
-          <h1 className="text-2xl font-bold text-gray-800">Sky Chat</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Chat App</h1>
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>

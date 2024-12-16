@@ -48,6 +48,7 @@ export default function Contact({ toggleSidebar }) {
         };
         await addDoc(chatsCollection, chatData);
         console.log("Contact saved to chats:", chatData);
+        toggleSidebar();
       }
     } catch (error) {
       console.error("Error saving contact to chats:", error);

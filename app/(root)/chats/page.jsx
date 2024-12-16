@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import ChatDetails from "@/components/ChatDetail";
 import ChatList from "@/components/ChatList";
 import Contact from "@/components/Contact";
 import Header from "@/components/Header";
+import StartScreen from "@/components/StartScreen";
 
 const Chats = () => {
     const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Initially set to false to hide the sidebar
@@ -45,7 +45,7 @@ const Chats = () => {
             {/* Chat Details Section */}
             <div className="w-full md:w-2/3">
                 <Header />
-                <ChatDetails />
+                <StartScreen />
             </div>
         </div>
     );

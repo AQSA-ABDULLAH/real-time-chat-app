@@ -1,29 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { firestore } from "../firebase/config"; // Import Firestore instance
-import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore"; // Correct imports for Firebase v9+
+import { doc, updateDoc, arrayUnion, onSnapshot } from "firebase/firestore"; // Correct imports for Firebase v9+
 
 export default function ChatDetail({ chatId, currentUser }) {
   const [message, setMessage] = useState(""); // State to capture the message
   const [chatData, setChatData] = useState(null); // State to hold the chat data
 
-  // Fetch chat data when component mounts or chatId changes
+  // Set up real-time listener for chat data
   useEffect(() => {
-    const fetchChatData = async () => {
-      try {
-        const chatDocRef = doc(firestore, "chats", chatId);
-        const chatDocSnap = await getDoc(chatDocRef);
+    const chatDocRef = doc(firestore, "chats", chatId);
 
-        if (chatDocSnap.exists()) {
-          setChatData(chatDocSnap.data());
-        } else {
-          console.log("No such chat!");
-        }
-      } catch (error) {
-        console.error("Error fetching chat data: ", error);
+    // Set up the real-time listener
+    const unsubscribe = onSnapshot(chatDocRef, (chatDocSnap) => {
+      if (chatDocSnap.exists()) {
+        setChatData(chatDocSnap.data()); // Update state with the latest chat data
+      } else {
+        console.log("No such chat!");
       }
-    };
+    });
 
-    if (chatId) fetchChatData();
+    // Clean up the listener when the component unmounts
+    return () => unsubscribe();
   }, [chatId]);
 
   const handleMessageChange = (e) => {
@@ -55,22 +52,22 @@ export default function ChatDetail({ chatId, currentUser }) {
   };
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      <h1 className="text-2xl font-bold mb-4">Chat ID: {chatId}</h1>
-      {/* Display specific currentUser properties */}
-      <h1 className="text-2xl font-bold mb-4">
-        User ID: {currentUser ? currentUser.uid : "Loading..."}
-      </h1>
-
+    <div className=" h-full flex flex-col">
+      <div className="p-4">
       {chatData && (
         <>
           <p className="text-gray-600 mb-6">Chat with {chatData.username}</p>
           <div className="flex-grow overflow-y-auto">
             {chatData.messages &&
               chatData.messages.map((msg, index) => (
-                <div key={index} className="mb-3">
-                  <div>
-                    <span className="font-semibold">{msg.userId}</span>:{" "}
+                <div key={index} className="mb-3 flex">
+                  <div
+                    className={`${
+                      msg.userId === currentUser.uid
+                        ? "ml-auto bg-blue-500 text-white"
+                        : "mr-auto bg-gray-200 text-gray-800"
+                    } p-3 rounded-lg max-w-[75%] break-words`}
+                  >
                     {msg.text}
                   </div>
                 </div>
@@ -78,19 +75,20 @@ export default function ChatDetail({ chatId, currentUser }) {
           </div>
         </>
       )}
+      </div>
 
       {/* Chat input section fixed at the bottom */}
-      <div className="fixed bottom-0 w-[65%] flex gap-3 border-t-2 bg-white px-4 py-3">
+      <div className="fixed bottom-0 w-[66%] flex gap-3 bg-black bg-opacity-10 px-4 py-3">
         <input
           type="text"
           value={message}
           onChange={handleMessageChange}
           placeholder="Send Message..."
-          className="flex-grow p-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+          className="flex-grow p-2 border border-black border-opacity-40 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
         />
         <button
           onClick={handleSendMessage} // Trigger message send function
-          className="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-8 py-2 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           Send
         </button>
@@ -98,4 +96,6 @@ export default function ChatDetail({ chatId, currentUser }) {
     </div>
   );
 }
+
+
 

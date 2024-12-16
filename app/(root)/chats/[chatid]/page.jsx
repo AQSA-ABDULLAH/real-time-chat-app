@@ -26,11 +26,6 @@ const ChatPage = () => {
     }
   }, []);
 
-  if (!currentUser) {
-    // Optionally show a loading state or redirect if user is not logged in
-    return <p>Loading user data...</p>;
-  }
-
   return (
     <div className="main-container flex flex-col md:flex-row h-full">
       {/* Sidebar ChatList */}

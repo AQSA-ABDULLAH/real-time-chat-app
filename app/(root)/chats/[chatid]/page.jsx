@@ -1,55 +1,71 @@
 "use client";
 
-import React, { useState } from "react";
-import ChatDetails from "@/components/ChatDetail";
+import React, { useState, useEffect } from "react";
 import ChatList from "@/components/ChatList";
 import Contact from "@/components/Contact";
 import Header from "@/components/Header";
 import ChatDetail from "@/components/ChatDetail";
+import { useParams } from "next/navigation";
+import { getAuth } from "firebase/auth"; // Import Firebase auth module
 
-const Chats = () => {
-    const [isSidebarVisible, setIsSidebarVisible] = useState(false); // Initially set to false to hide the sidebar
+const ChatPage = () => {
+  const { chatid } = useParams(); // Extract chatId from the URL
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null); // State to store the current user
 
-    const toggleSidebar = () => {
-        setIsSidebarVisible((prevState) => !prevState); // Toggle the sidebar visibility
-    };
+  const toggleSidebar = () => {
+    setIsSidebarVisible((prevState) => !prevState);
+  };
 
-    return (
-        <div className="main-container flex flex-col md:flex-row h-full">
-            {/* Sidebar ChatList */}
-            <div className="w-full md:w-1/3 border-r border-gray-200 relative">
-                <div className="mx-5 mt-8 mb-4 flex justify-between">
-                    <h1 className="text-[26px] font-semibold text-gray-800">
-                        Chats
-                    </h1>
+  // Fetch the current user
+  useEffect(() => {
+    const auth = getAuth();
+    const user = auth.currentUser; // Get the current authenticated user
+    if (user) {
+      setCurrentUser(user); // Set the current user if logged in
+    }
+  }, []);
 
-                    <img
-                        src="/assest/add.png"
-                        alt="Toggle Sidebar"
-                        onClick={toggleSidebar}
-                        className="h-[32px] cursor-pointer"
-                    />
-                </div>
-                <ChatList />
-            </div>
+  if (!currentUser) {
+    // Optionally show a loading state or redirect if user is not logged in
+    return <p>Loading user data...</p>;
+  }
 
-            {/* Contact Sidebar (Toggleable) */}
-            <div
-                className={`${isSidebarVisible ? "block" : "hidden"
-                    } fixed inset-0 md:w-1/3 md:left-0 bg-gray-800 bg-opacity-75 z-50`}
-            >
-                <div className="border-r border-gray-200 h-full">
-                    <Contact toggleSidebar={toggleSidebar} /> {/* Pass toggleSidebar */}
-                </div>
-            </div>
+  return (
+    <div className="main-container flex flex-col md:flex-row h-full">
+      {/* Sidebar ChatList */}
+      <div className="w-full md:w-1/3 border-r border-gray-200 relative">
+        <div className="mx-5 mt-8 mb-4 flex justify-between">
+          <h1 className="text-[26px] font-semibold text-gray-800">Chats</h1>
 
-            {/* Chat Details Section */}
-            <div className="w-full md:w-2/3">
-                <Header />
-                <ChatDetail />
-            </div>
+          <img
+            src="/assest/add.png"
+            alt="Toggle Sidebar"
+            onClick={toggleSidebar}
+            className="h-[32px] cursor-pointer"
+          />
         </div>
-    );
+        <ChatList />
+      </div>
+
+      {/* Contact Sidebar */}
+      <div
+        className={`${isSidebarVisible ? "block" : "hidden"} fixed inset-0 md:w-1/3 md:left-0 bg-gray-800 bg-opacity-75 z-50`}
+      >
+        <div className="border-r border-gray-200 h-full">
+          <Contact toggleSidebar={toggleSidebar} />
+        </div>
+      </div>
+
+      {/* Chat Detail Section */}
+      <div className="w-full md:w-2/3">
+        <Header />
+        <ChatDetail chatId={chatid} currentUser={currentUser} />
+      </div>
+    </div>
+  );
 };
 
-export default Chats;
+export default ChatPage;
+
+

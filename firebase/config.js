@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore, doc, setDoc } from "firebase/firestore";  // Import doc and setDoc
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
@@ -18,7 +18,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-const firestore = getFirestore(app);  // Ensure you're using the initialized firestore instance
+const firestore = getFirestore(app);
 const storage = getStorage(app);
 
 let analytics;

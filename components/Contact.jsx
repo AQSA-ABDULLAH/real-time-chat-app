@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { firestore } from "../firebase/config"; 
-import { collection, getDocs, addDoc, query, where } from "firebase/firestore"; // Import query and where for filtering
+import { firestore } from "../firebase/config";
+import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
 
 export default function Contact({ toggleSidebar }) {
   const [contacts, setContacts] = useState([]);
@@ -28,41 +28,41 @@ export default function Contact({ toggleSidebar }) {
 
   const handleContactClick = async (contact) => {
     try {
-      // Query the 'chats' collection to check if the contact's email already exists
+      const currentUserId = "CURRENT_USER_ID";
+      const currentUsername = "CURRENT_USER_USERNAME";
+
       const chatsCollection = collection(firestore, "chats");
-      const q = query(chatsCollection, where("email", "==", contact.email));
+      const q = query(
+        chatsCollection,
+        where("members", "array-contains", currentUserId)
+      );
       const querySnapshot = await getDocs(q);
 
-      // If the email is already in the chats collection, close the contact sidebar
-      if (!querySnapshot.empty) {
+      const existingChat = querySnapshot.docs.find((doc) =>
+        doc.data().members.includes(contact.id)
+      );
+
+      if (existingChat) {
         console.log("Chat already exists with this contact.");
-        toggleSidebar(); // Close sidebar if chat already exists
+        toggleSidebar();
       } else {
-        // If the email doesn't exist, add the contact to the chats collection
-        const chatData = {
-          userId: contact.id,
-          username: contact.username,
-          email: contact.email,
+        // Define the chat schema
+        const newChat = {
+          members: [currentUserId, contact.id],
+          usernames: [currentUsername, contact.username],
           avatar: contact.avatar || null,
-          createdAt: new Date(), // Add a timestamp
+          messages: [],
+          createdAt: new Date(),
         };
-        await addDoc(chatsCollection, chatData);
-        console.log("Contact saved to chats:", chatData);
+
+        await addDoc(chatsCollection, newChat);
+        console.log("New chat created:", newChat);
         toggleSidebar();
       }
     } catch (error) {
-      console.error("Error saving contact to chats:", error);
+      console.error("Error creating chat:", error);
     }
   };
-
-  const filteredContacts = contacts.filter((contact) => {
-    const name = contact?.username?.toLowerCase() || "";
-    const email = contact?.email?.toLowerCase() || "";
-    return (
-      name.includes(searchQuery.toLowerCase()) ||
-      email.includes(searchQuery.toLowerCase())
-    );
-  });
 
   return (
     <section className="p-6 bg-white h-full">
@@ -71,12 +71,11 @@ export default function Contact({ toggleSidebar }) {
           src="/assest/back.png"
           alt="Go Back"
           className="cursor-pointer w-7 h-6"
-          onClick={toggleSidebar} // Close sidebar when clicked
+          onClick={toggleSidebar}
         />
         <h3 className="text-lg font-semibold text-gray-800">New Chat</h3>
       </div>
 
-      {/* Search Bar */}
       <div className="mb-4">
         <input
           type="text"
@@ -89,7 +88,6 @@ export default function Contact({ toggleSidebar }) {
 
       <h1 className="font-bold py-1 mb-4 border-b-2">AVAILABLE CONTACTS</h1>
 
-      {/* Contact List with Scroller */}
       <ul
         className="space-y-3 overflow-y-auto h-[calc(93vh-200px)] px-2"
         style={{
@@ -101,7 +99,7 @@ export default function Contact({ toggleSidebar }) {
           <li
             key={contact.id}
             className="flex items-center p-3 bg-gray-50 rounded-lg shadow-sm hover:bg-gray-100 cursor-pointer"
-            onClick={() => handleContactClick(contact)} // Save contact to Firestore on click
+            onClick={() => handleContactClick(contact)}
           >
             <div className="w-12 h-12 rounded-full bg-blue-300 flex-shrink-0">
               <img

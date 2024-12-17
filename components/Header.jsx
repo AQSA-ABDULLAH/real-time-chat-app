@@ -44,7 +44,7 @@ const Header = ({ userId }) => {
 
   const handleLogout = async () => {
     
-    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userId");
     router.push("/");  
     console.log("User logged out");
   };

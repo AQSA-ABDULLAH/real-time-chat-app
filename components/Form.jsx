@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { auth, firestore, doc, setDoc } from "../firebase/config";
 import Link from "next/link";
+import createUserSchema from "../model/userModel";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
@@ -47,11 +48,7 @@ const Form = ({ type }) => {
         await sendEmailVerification(user);
 
         // Save user data to Firestore
-        await setDoc(doc(firestore, "users", user.uid), {
-          username: data.username,
-          email: data.email,
-          createdAt: new Date().toISOString(),
-        });
+        await setDoc(doc(firestore, "users", user.uid), createUserSchema(data.username, data.email));
 
         // Success message
         setMessage("Registration successful. Please check your email for verification.");

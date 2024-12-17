@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { firestore } from "../firebase/config";
 import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
-import { getAuth } from "firebase/auth"; // Import Firebase Auth
+import { getAuth } from "firebase/auth";
+import createChatSchema from "../model/chatModel";
 
 export default function Contact({ toggleSidebar }) {
   const [contacts, setContacts] = useState([]);
@@ -45,45 +46,41 @@ export default function Contact({ toggleSidebar }) {
     fetchContacts();
   }, []);
 
-  const handleContactClick = async (contact) => {
-    if (!currentUser) {
-      console.error("No user is logged in. Cannot create chat.");
-      return;
+
+const handleContactClick = async (contact) => {
+  if (!currentUser) {
+    console.error("No user is logged in. Cannot create chat.");
+    return;
+  }
+
+  try {
+    const chatsCollection = collection(firestore, "chats");
+    const q = query(
+      chatsCollection,
+      where("members", "array-contains", currentUser.id)
+    );
+    const querySnapshot = await getDocs(q);
+
+    const existingChat = querySnapshot.docs.find((doc) =>
+      doc.data().members.includes(contact.id)
+    );
+
+    if (existingChat) {
+      console.log("Chat already exists with this contact.");
+      toggleSidebar();
+    } else {
+      // Use the createChatSchema function
+      const newChat = createChatSchema(currentUser.id, contact);
+
+      await addDoc(chatsCollection, newChat);
+      console.log("New chat created:", newChat);
+      toggleSidebar();
     }
+  } catch (error) {
+    console.error("Error creating chat:", error);
+  }
+};
 
-    try {
-      const chatsCollection = collection(firestore, "chats");
-      const q = query(
-        chatsCollection,
-        where("members", "array-contains", currentUser.id)
-      );
-      const querySnapshot = await getDocs(q);
-
-      const existingChat = querySnapshot.docs.find((doc) =>
-        doc.data().members.includes(contact.id)
-      );
-
-      if (existingChat) {
-        console.log("Chat already exists with this contact.");
-        toggleSidebar();
-      } else {
-        // Define the chat schema
-        const newChat = {
-          members: [currentUser.id, contact.id],
-          username: contact.username,
-          avatar: contact.avatar || null,
-          messages: [],
-          createdAt: new Date(),
-        };
-
-        await addDoc(chatsCollection, newChat);
-        console.log("New chat created:", newChat);
-        toggleSidebar();
-      }
-    } catch (error) {
-      console.error("Error creating chat:", error);
-    }
-  };
 
   const filteredContacts = contacts.filter((contact) => {
     const name = contact?.username?.toLowerCase() || "";

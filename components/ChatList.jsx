@@ -2,18 +2,37 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { firestore } from "../firebase/config"; // Correct Firestore import
+import { getAuth } from "firebase/auth"; // Import Firebase Auth
 
 export default function ChatList() {
   const [chats, setChats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentUser, setCurrentUser] = useState(null); // To store the logged-in user's data
   const router = useRouter();
+
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        setCurrentUser({
+          id: user.uid,
+          username: user.displayName || user.email.split("@")[0], // Fallback to email if displayName is missing
+        });
+      } else {
+        console.error("No user is logged in.");
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup on unmount
+  }, []);
 
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const querySnapshot = await getDocs(collection(firestore, "chats")); // Use 'firestore' here
+        const q = query(collection(firestore, "chats"), where("members", "array-contains", currentUser?.id)); // Fetch chats where the current user is a member
+        const querySnapshot = await getDocs(q);
         const chatData = querySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -24,18 +43,20 @@ export default function ChatList() {
       }
     };
 
-    fetchChats();
-  }, []);
+    if (currentUser) {
+      fetchChats(); // Fetch chats only if the user is logged in
+    }
+  }, [currentUser]);
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
   };
 
   const filteredChats = chats.filter((chat) => {
-    const name = chat.name ? chat.name.toLowerCase() : ""; // Default to empty string if undefined
-    const message = chat.message ? chat.message.toLowerCase() : ""; // Default to empty string if undefined
+    const username = chat.username ? chat.username.toLowerCase() : ""; // Default to empty string if undefined
+    const message = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text.toLowerCase() : ""; // Last message text
     return (
-      name.includes(searchQuery.toLowerCase()) ||
+      username.includes(searchQuery.toLowerCase()) ||
       message.includes(searchQuery.toLowerCase())
     );
   });
@@ -72,13 +93,13 @@ export default function ChatList() {
             <div className="w-12 h-12 rounded-full bg-blue-300 flex-shrink-0">
               <img
                 src={chat.avatar || "/default-avatar.png"} // Fallback avatar
-                alt={`Avatar for ${chat.name}`}
+                alt={`Avatar for ${chat.username}`}
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
             <div className="ml-3">
               <p className="font-semibold text-gray-800">{chat.username}</p>
-              <p className="text-sm text-gray-500 truncate">{chat.message}</p>
+              <p className="text-sm text-gray-500 truncate">{chat.messages[chat.messages.length - 1]?.text}</p>
             </div>
           </div>
         ))}
@@ -86,5 +107,4 @@ export default function ChatList() {
     </div>
   );
 }
-
 

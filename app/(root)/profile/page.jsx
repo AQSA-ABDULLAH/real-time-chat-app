@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import Header from '@/components/Header';
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from '@/firebase/config';
 
 export default function Page() {
     const [name, setName] = useState('');
@@ -30,6 +32,40 @@ export default function Page() {
             setImage(URL.createObjectURL(e.target.files[0]));
         }
     };
+
+    // Save updated name to Firestore
+const handleSaveChanges = async () => {
+    if (!name.trim()) {
+        alert("Name cannot be empty!");
+        return;
+    }
+
+    try {
+        console.log("Updating User ID:", userId);
+        const userDocRef = doc(db, "users", userId);
+
+        // Check if the document exists
+        const docSnap = await getDoc(userDocRef);
+        if (!docSnap.exists()) {
+            console.error("No such document exists in Firestore!");
+            alert("User document does not exist. Please try again.");
+            return;
+        }
+
+        // Update the document
+        await updateDoc(userDocRef, {
+            username: name,
+        });
+
+        console.log("Name updated successfully!");
+        alert("Name updated successfully!");
+    } catch (error) {
+        console.error("Error updating name:", error.message);
+        alert("Failed to update name. Please try again.");
+    }
+};
+
+    
 
     return (
         <div>
@@ -74,6 +110,7 @@ export default function Page() {
                 <div>
                     <button
                         className="w-72 py-2 bg-gradient-to-r from-blue-500 to-blue-700 text-white rounded-lg font-semibold"
+                        onClick={handleSaveChanges} // Attach the function here
                     >
                         Save Changes
                     </button>
@@ -82,4 +119,5 @@ export default function Page() {
         </div>
     );
 }
+
 

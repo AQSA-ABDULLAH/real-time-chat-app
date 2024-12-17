@@ -11,7 +11,7 @@ const MediumHeader = ({ username }) => {
 
     const handleLogout = async () => {
         // Remove userEmail from localStorage
-        localStorage.removeItem("userEmail");
+        localStorage.removeItem("userId");
         router.push("/");
         console.log("User logged out");
     };
@@ -34,7 +34,7 @@ const MediumHeader = ({ username }) => {
 
             {/* Menu */}
             <div className="flex items-center space-x-6">
-                {/* Logout Icon */}
+
                 {/* Logout Icon */}
                 <Logout
                     onClick={handleLogout}

@@ -2,23 +2,24 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { firestore } from "../firebase/config"; // Correct Firestore import
-import { getAuth } from "firebase/auth"; // Import Firebase Auth
+import { collection, onSnapshot, query, where, getDoc, doc } from "firebase/firestore";
+import { firestore } from "../firebase/config";
+import { getAuth } from "firebase/auth";
 
 export default function ChatList() {
   const [chats, setChats] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [currentUser, setCurrentUser] = useState(null); // To store the logged-in user's data
+  const [currentUser, setCurrentUser] = useState(null);
   const router = useRouter();
 
+  // Fetch the current user
   useEffect(() => {
     const auth = getAuth();
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setCurrentUser({
           id: user.uid,
-          username: user.displayName || user.email.split("@")[0], // Fallback to email if displayName is missing
+          username: user.displayName || user.email.split("@")[0],
         });
       } else {
         console.error("No user is logged in.");
@@ -28,24 +29,42 @@ export default function ChatList() {
     return () => unsubscribe(); // Cleanup on unmount
   }, []);
 
+  // Real-time listener for chats
   useEffect(() => {
-    const fetchChats = async () => {
-      try {
-        const q = query(collection(firestore, "chats"), where("members", "array-contains", currentUser?.id)); // Fetch chats where the current user is a member
-        const querySnapshot = await getDocs(q);
-        const chatData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setChats(chatData);
-      } catch (error) {
-        console.error("Error fetching chats from Firestore:", error);
-      }
-    };
+    if (!currentUser) return;
 
-    if (currentUser) {
-      fetchChats(); // Fetch chats only if the user is logged in
-    }
+    const q = query(
+      collection(firestore, "chats"),
+      where("members", "array-contains", currentUser.id)
+    );
+
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
+      const chatData = await Promise.all(
+        querySnapshot.docs.map(async (docSnapshot) => {
+          const data = docSnapshot.data();
+          // Find the other user's ID (not the current user)
+          const otherUserId = data.members.find((id) => id !== currentUser.id);
+
+          // Fetch other user's details
+          let otherUser = { username: "Unknown User" };
+          if (otherUserId) {
+            const userDoc = await getDoc(doc(firestore, "users", otherUserId));
+            if (userDoc.exists()) {
+              otherUser = userDoc.data();
+            }
+          }
+
+          return {
+            id: docSnapshot.id,
+            ...data,
+            otherUser, // Add other user details
+          };
+        })
+      );
+      setChats(chatData);
+    });
+
+    return () => unsubscribe();
   }, [currentUser]);
 
   const handleSearchChange = (event) => {
@@ -53,8 +72,13 @@ export default function ChatList() {
   };
 
   const filteredChats = chats.filter((chat) => {
-    const username = chat.username ? chat.username.toLowerCase() : ""; // Default to empty string if undefined
-    const message = chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].text.toLowerCase() : ""; // Last message text
+    const username = chat.otherUser?.username
+      ? chat.otherUser.username.toLowerCase()
+      : "";
+    const message =
+      chat.messages && chat.messages.length > 0
+        ? chat.messages[chat.messages.length - 1]?.text.toLowerCase()
+        : "";
     return (
       username.includes(searchQuery.toLowerCase()) ||
       message.includes(searchQuery.toLowerCase())
@@ -92,14 +116,18 @@ export default function ChatList() {
           >
             <div className="w-12 h-12 rounded-full bg-blue-300 flex-shrink-0">
               <img
-                src={chat.avatar || "/default-avatar.png"} // Fallback avatar
-                alt={`Avatar for ${chat.username}`}
+                src="/assest/profile-image.png"
+                alt={`Avatar for ${chat.otherUser?.username || "User"}`}
                 className="w-full h-full object-cover rounded-full"
               />
             </div>
             <div className="ml-3">
-              <p className="font-semibold text-gray-800">{chat.username}</p>
-              <p className="text-sm text-gray-500 truncate">{chat.messages[chat.messages.length - 1]?.text}</p>
+              <p className="font-semibold text-gray-800">
+                {chat.otherUser?.username || "Unknown User"}
+              </p>
+              <p className="text-sm text-gray-500 truncate">
+                {chat.messages?.[chat.messages.length - 1]?.text || "No messages yet"}
+              </p>
             </div>
           </div>
         ))}

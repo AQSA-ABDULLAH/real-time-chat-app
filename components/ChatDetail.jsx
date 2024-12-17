@@ -54,29 +54,32 @@ export default function ChatDetail({ chatId, currentUser }) {
   return (
     <div className=" h-full flex flex-col">
       <div className="p-4">
-      {chatData && (
-        <>
-          <p className="text-gray-600 mb-6">Chat with {chatData.username}</p>
-          <div className="flex-grow overflow-y-auto">
-            {chatData.messages &&
-              chatData.messages.map((msg, index) => (
-                <div key={index} className="mb-3 flex">
-                  <div
-                    className={`${
-                      msg.userId === currentUser.uid
-                        ? "ml-auto bg-blue-500 text-white"
-                        : "mr-auto bg-gray-200 text-gray-800"
-                    } p-3 rounded-lg max-w-[75%] break-words`}
-                  >
-                    {msg.text}
+        {chatData && (
+          <>
+            <p className="text-gray-600 mb-6">Chat with {chatData.username}</p>
+            <div className="flex-grow overflow-y-auto">
+              {chatData.messages &&
+                chatData.messages.map((msg, index) => (
+                  <div key={index} className="mb-3 flex">
+                    {/* Add a check to ensure currentUser is not null */}
+                    {currentUser && (
+                      <div
+                        className={`${
+                          msg.userId === currentUser.uid
+                            ? "ml-auto bg-blue-500 text-white"
+                            : "mr-auto bg-gray-200 text-gray-800"
+                        } p-3 rounded-lg max-w-[75%] break-words`}
+                      >
+                        {msg.text}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
-          </div>
-        </>
-      )}
+                ))}
+            </div>
+          </>
+        )}
       </div>
-
+  
       {/* Chat input section fixed at the bottom */}
       <div className="fixed bottom-0 w-[66%] flex gap-3 bg-black bg-opacity-10 px-4 py-3">
         <input
@@ -95,6 +98,7 @@ export default function ChatDetail({ chatId, currentUser }) {
       </div>
     </div>
   );
+  
 }
 
 

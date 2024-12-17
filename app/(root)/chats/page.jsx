@@ -31,7 +31,7 @@ const Chats = () => {
     <div className="main-container flex flex-col md:flex-row h-full">
       {/* Sidebar ChatList */}
       <div className="w-full md:w-1/3 border-r border-gray-200 relative">
-        <div className="mx-5 mt-8 mb-4 flex justify-between">
+        <div className="mx-5 mb-4 flex justify-between">
           <h1 className="text-[26px] font-semibold text-gray-800">Chats</h1>
 
           <img

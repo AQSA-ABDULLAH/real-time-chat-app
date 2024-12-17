@@ -35,6 +35,7 @@ const MediumHeader = ({ username }) => {
             {/* Menu */}
             <div className="flex items-center space-x-6">
                 {/* Logout Icon */}
+                {/* Logout Icon */}
                 <Logout
                     onClick={handleLogout}
                     className="text-gray-500 hover:text-gray-700 color-#737373 cursor-pointer transition duration-200"
@@ -42,15 +43,11 @@ const MediumHeader = ({ username }) => {
 
                 {/* Profile Image */}
                 <Link href="/profile">
-                    {profileImgSrc ? (
-                        <img
-                            src={profileImgSrc}
-                            alt="profile"
-                            className="w-10 h-10 rounded-full border border-gray-300 object-cover cursor-pointer"
-                        />
-                    ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-300 cursor-pointer" /> // Fallback if no profile image
-                    )}
+                    <img
+                        src="/assest/profile-image.png"
+                        alt="profile"
+                        className="w-10 h-10 rounded-full border border-gray-300 object-cover cursor-pointer"
+                    />
                 </Link>
             </div>
         </div>
